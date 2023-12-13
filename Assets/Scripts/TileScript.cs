@@ -1,0 +1,23 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class TileScript : MonoBehaviour
+{
+    public GameObject Up = null;
+    public GameObject Down = null;
+    public GameObject Left = null;
+    public GameObject Right = null;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+}
