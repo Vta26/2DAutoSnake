@@ -7,6 +7,7 @@ public class AStarAlgorithm : MonoBehaviour
     public GameObject Apple;
     public Vector3 ApplePosition;
     public List<Vector3> ResultPath;
+    public List<float> ResultF;
     private float q;
     public int LoopCount = 0;
 
@@ -26,7 +27,7 @@ public class AStarAlgorithm : MonoBehaviour
 
     private bool SuccessorCheck(Node Successor, List<Node> OL, List<Node> CL)
     {
-        if (Successor == Successor.Parent.Parent){
+        if (Successor.Parent != null && Successor.Parent.Parent != null && Successor.NodePos == Successor.Parent.Parent.NodePos){
             return false;
         }
         for (int i = 0; i < OL.Count; i++)
@@ -35,13 +36,13 @@ public class AStarAlgorithm : MonoBehaviour
                 return false;
             }
         }
+        List<Transform> SnakeSegments = this.GetComponent<PlayerScript>()._segments;
         for (int j = 0; j < CL.Count; j++)
         {
-            if (CL[j].NodePos == Successor.NodePos && CL[j].f < Successor.f){
+            if(CL[j].NodePos == Successor.NodePos && CL[j].f < Successor.f){
                 return false;
             }
         }
-        List<Transform> SnakeSegments = this.GetComponent<PlayerScript>()._segments;
         for (int k = 0; k < SnakeSegments.Count; k++)
         {
             if (SnakeSegments[k].position == Successor.NodePos){
@@ -73,6 +74,7 @@ public class AStarAlgorithm : MonoBehaviour
             if(LoopCount > 10000){
                 for (int i = 0; i < ClosedList.Count; i++){
                     ResultPath.Add(ClosedList[i].NodePos);
+                    ResultF.Add(ClosedList[i].f);
                 }
                 print("Fucked it");
                 return;
