@@ -10,6 +10,7 @@ public class AStarAlgorithm : MonoBehaviour
     public List<float> ResultF;
     private float q;
     public int LoopCount = 0;
+    private bool Added = false;
 
     public class Node
     {
@@ -30,16 +31,19 @@ public class AStarAlgorithm : MonoBehaviour
         if (Successor.Parent != null && Successor.Parent.Parent != null && Successor.NodePos == Successor.Parent.Parent.NodePos){
             return false;
         }
+        if (Successor.NodePos.x > 31 || Successor.NodePos.x < -31 || Successor.NodePos.y > 14 || Successor.NodePos.y < -14){
+            return false;
+        }
         for (int i = 0; i < OL.Count; i++)
         {
-            if (OL[i].NodePos == Successor.NodePos && OL[i].f < Successor.f){
+            if (OL[i].NodePos == Successor.NodePos && OL[i].f <= Successor.f){
                 return false;
             }
         }
         List<Transform> SnakeSegments = this.GetComponent<PlayerScript>()._segments;
         for (int j = 0; j < CL.Count; j++)
         {
-            if(CL[j].NodePos == Successor.NodePos && CL[j].f < Successor.f){
+            if(CL[j].NodePos == Successor.NodePos && CL[j].f <= Successor.f){
                 return false;
             }
         }
@@ -50,6 +54,34 @@ public class AStarAlgorithm : MonoBehaviour
             }
         }
         return true;
+    }
+
+    private Node FindLowestF(List<Node> OL, List<Node> CL, Node ParentNode)
+    {
+        Node ResultNode = OL[0];
+        q = ResultNode.f;
+
+        List<Node> CopyList = new List<Node>();
+
+        for (int i = 1; i < OL.Count; i++){
+            CopyList.Add(OL[i]);
+            if (OL[i].f < q){
+                ResultNode = OL[i];
+                q = OL[i].f;
+            }
+        }
+
+        //Check if Selected Node is Adjacent to Most Recent Node
+        if (CL.Count > 0){
+            if (CL[CL.Count - 1] != ResultNode.Parent){
+                CopyList.Remove(ResultNode);
+                if (CopyList.Count == 0){
+                    return ResultNode;
+                }
+                return FindLowestF(CopyList, CL, ParentNode);
+            }
+        }
+        return ResultNode;
     }
 
     public void AStar()
@@ -70,24 +102,17 @@ public class AStarAlgorithm : MonoBehaviour
 
         //While Open List is Not Empty
         while(OpenList.Count != 0){
+            Added = false;
             LoopCount++;
             if(LoopCount > 10000){
                 for (int i = 0; i < ClosedList.Count; i++){
                     ResultPath.Add(ClosedList[i].NodePos);
                     ResultF.Add(ClosedList[i].f);
                 }
-                print("Fucked it");
                 return;
             }
             //Find Node with Lowest F on Open List
-            TempNode = OpenList[0];
-            q = TempNode.f;
-            for (int i = 1; i < OpenList.Count; i++){
-                if (OpenList[i].f < q){
-                    TempNode = OpenList[i];
-                    q = TempNode.f;
-                }
-            }
+            TempNode = FindLowestF(OpenList,ClosedList,TempNode);
 
             //Pop q off Open List
             OpenList.Remove(TempNode);
@@ -107,6 +132,7 @@ public class AStarAlgorithm : MonoBehaviour
                 break;
             }
             if (SuccessorCheck(UpNode, OpenList, ClosedList)){
+                Added = true;
                 OpenList.Add(UpNode);
             }
             Node DownNode = new Node(TempNode, TempNode.NodePos - new Vector3(0, 1, 0), Apple.transform.position);
@@ -115,6 +141,7 @@ public class AStarAlgorithm : MonoBehaviour
                 break;
             }
             if (SuccessorCheck(DownNode, OpenList, ClosedList)){
+                Added = true;
                 OpenList.Add(DownNode);
             }
             Node LeftNode = new Node(TempNode, TempNode.NodePos - new Vector3(1, 0, 0), Apple.transform.position);
@@ -123,6 +150,7 @@ public class AStarAlgorithm : MonoBehaviour
                 break;
             }
             if (SuccessorCheck(LeftNode, OpenList, ClosedList)){
+                Added = true;
                 OpenList.Add(LeftNode);
             }
             Node RightNode = new Node(TempNode, TempNode.NodePos + new Vector3(1, 0, 0), Apple.transform.position);
@@ -131,13 +159,31 @@ public class AStarAlgorithm : MonoBehaviour
                 break;
             }
             if (SuccessorCheck(RightNode, OpenList, ClosedList)){
+                Added = true;
                 OpenList.Add(RightNode);
+            }
+
+            //If No OpenList was Added, Last position is a Dead End
+            if (!Added){
+                ClosedList.Remove(TempNode);
             }
         }
         
         //transform closedlist to vector3 list
-        for (int i = 0; i < ClosedList.Count; i++){
-            ResultPath.Add(ClosedList[i].NodePos);
+        ResultPath.Add(ClosedList[ClosedList.Count - 1].NodePos);
+        Node CurrentNode = ClosedList[ClosedList.Count - 1];
+
+        while (ResultPath[0] != this.transform.position){
+            LoopCount = 0;
+            LoopCount ++;
+            if (LoopCount > 10000){
+                return;
+            }
+            CurrentNode = CurrentNode.Parent;
+            if (CurrentNode == null){
+                break;
+            }
+            ResultPath.Insert(0,CurrentNode.NodePos);
         }
     }
 }
