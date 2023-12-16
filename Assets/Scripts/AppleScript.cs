@@ -23,6 +23,7 @@ public class AppleScript : MonoBehaviour
         List<Transform> segments = Snake.GetComponent<PlayerScript>()._segments;
         for (int i = 0; i < segments.Count; i++){
             if (this.transform.position == segments[i].position){
+                print ("Spawned in the Same Space as Snake");
                 RandomizePosition();
                 return;
             }
@@ -31,14 +32,6 @@ public class AppleScript : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == "Player"){
-            RandomizePosition();
-        }
-    }
-
-    private void OnTriggerStay2D(Collider2D other)
-    {
-        print("Works");
         if (other.tag == "Player"){
             RandomizePosition();
         }

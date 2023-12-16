@@ -55,7 +55,14 @@ public class PlayerScript : MonoBehaviour
     private void FixedUpdate()
     {
         CurrentPos++;
-        _direction = AStarList[CurrentPos] - this.transform.position;
+
+        if (AStarList != null && AStarList.Count > CurrentPos){
+            _direction = AStarList[CurrentPos] - this.transform.position; 
+        }
+
+        else{
+            _direction = Vector2.right;
+        }
 
         for (int i = _segments.Count - 1; i > 0; i--){
             _segments[i].position = _segments[i-1].position;

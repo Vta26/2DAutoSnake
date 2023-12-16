@@ -47,7 +47,18 @@ public class AStarAlgorithm : MonoBehaviour
                 return false;
             }
         }
-        for (int k = 0; k < SnakeSegments.Count; k++)
+        Node ParentCheck = Successor;
+        int SegmentCount = -1;
+        while (ParentCheck != null){
+            if (SegmentCount > 10000){
+                print("Way Too Much");
+                break;
+            }
+            SegmentCount++;
+            ParentCheck = ParentCheck.Parent;
+        }
+        int SegmentCheck = SnakeSegments.Count - SegmentCount;
+        for (int k = 0; k < SegmentCheck; k++)
         {
             if (SnakeSegments[k].position == Successor.NodePos){
                 return false;
