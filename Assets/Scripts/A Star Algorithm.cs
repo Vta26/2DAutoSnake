@@ -12,6 +12,7 @@ public class AStarAlgorithm : MonoBehaviour
     public int LoopCount = 0;
     private bool Added = false;
 
+
     public class Node
     {
         public Node Parent;
@@ -67,6 +68,34 @@ public class AStarAlgorithm : MonoBehaviour
         return true;
     }
 
+    private Node FindHighestF(List<Node> OL, List<Node> CL, Node ParentNode)
+    {
+        Node ResultNode = OL[0];
+        q = ResultNode.f;
+
+        List<Node> CopyList = new List<Node>();
+
+        for (int i = 1; i < OL.Count; i++){
+            CopyList.Add(OL[i]);
+            if (OL[i].f > q){
+                ResultNode = OL[i];
+                q = OL[i].f;
+            }
+        }
+
+        //Check if Selected Node is Adjacent to Most Recent Node
+        if (CL.Count > 0){
+            if (CL[CL.Count - 1] != ResultNode.Parent){
+                CopyList.Remove(ResultNode);
+                if (CopyList.Count == 0){
+                    return ResultNode;
+                }
+                return FindHighestF(CopyList, CL, ParentNode);
+            }
+        }
+        return ResultNode;
+    }
+
     private Node FindLowestF(List<Node> OL, List<Node> CL, Node ParentNode)
     {
         Node ResultNode = OL[0];
@@ -93,6 +122,40 @@ public class AStarAlgorithm : MonoBehaviour
             }
         }
         return ResultNode;
+    }
+
+    private bool AppleStuck(List<Node> CL)
+    {
+        bool RightCheck = false;
+        bool LeftCheck = false;
+        bool UpCheck = false;
+        bool DownCheck = false;
+
+        Vector3 RightPos = ApplePosition + new Vector3(1,0,0);
+        Vector3 LeftPos = ApplePosition - new Vector3(1,0,0);
+        Vector3 UpPos = ApplePosition + new Vector3(0,1,0);
+        Vector3 DownPos = ApplePosition - new Vector3(0,1,0);
+
+        List<Transform> SnakeSegments = this.GetComponent<PlayerScript>()._segments;
+        for (int i = 0; i < SnakeSegments.Count - CL.Count; i++){
+            if (RightPos == SnakeSegments[i].position){
+                RightCheck = true;
+            }
+            if (LeftPos == SnakeSegments[i].position){
+                LeftCheck = true;
+            }
+            if (UpPos == SnakeSegments[i].position){
+                UpCheck = true;
+            }
+            if (DownPos == SnakeSegments[i].position){
+                DownCheck = true;
+            }
+        }
+
+        if ((RightCheck && LeftCheck) || (UpCheck && DownCheck)){
+            return true;
+        }
+        return false;
     }
 
     public void AStar()
@@ -122,8 +185,16 @@ public class AStarAlgorithm : MonoBehaviour
                 }
                 return;
             }
-            //Find Node with Lowest F on Open List
-            TempNode = FindLowestF(OpenList,ClosedList,TempNode);
+
+            //Apple is Stuck between Snake, run away for now
+            if (AppleStuck(ClosedList)){
+                print("APPLE IS STUCK PANIK");
+                TempNode = FindHighestF(OpenList,ClosedList,TempNode);
+            }
+            else{
+                //Find Node with Lowest F on Open List
+                TempNode = FindLowestF(OpenList,ClosedList,TempNode);
+            }
 
             //Pop q off Open List
             OpenList.Remove(TempNode);
@@ -137,14 +208,14 @@ public class AStarAlgorithm : MonoBehaviour
             //If Successor same position as snake, skip Successor
             //If Successor position same as Apple, Stop Search
             //Otherwise add to openlist            
-            Node UpNode = new Node(TempNode, TempNode.NodePos + new Vector3(0, 1, 0), Apple.transform.position);
-            if (UpNode.NodePos == Apple.transform.position){
-                ClosedList.Add(UpNode);
+            Node RightNode = new Node(TempNode, TempNode.NodePos + new Vector3(1, 0, 0), Apple.transform.position);
+            if (RightNode.NodePos == Apple.transform.position){
+                ClosedList.Add(RightNode);
                 break;
             }
-            if (SuccessorCheck(UpNode, OpenList, ClosedList)){
+            if (SuccessorCheck(RightNode, OpenList, ClosedList)){
                 Added = true;
-                OpenList.Add(UpNode);
+                OpenList.Add(RightNode);
             }
             Node DownNode = new Node(TempNode, TempNode.NodePos - new Vector3(0, 1, 0), Apple.transform.position);
             if (DownNode.NodePos == Apple.transform.position){
@@ -164,14 +235,14 @@ public class AStarAlgorithm : MonoBehaviour
                 Added = true;
                 OpenList.Add(LeftNode);
             }
-            Node RightNode = new Node(TempNode, TempNode.NodePos + new Vector3(1, 0, 0), Apple.transform.position);
-            if (RightNode.NodePos == Apple.transform.position){
-                ClosedList.Add(RightNode);
+            Node UpNode = new Node(TempNode, TempNode.NodePos + new Vector3(0, 1, 0), Apple.transform.position);
+            if (UpNode.NodePos == Apple.transform.position){
+                ClosedList.Add(UpNode);
                 break;
             }
-            if (SuccessorCheck(RightNode, OpenList, ClosedList)){
+            if (SuccessorCheck(UpNode, OpenList, ClosedList)){
                 Added = true;
-                OpenList.Add(RightNode);
+                OpenList.Add(UpNode);
             }
 
             //If No OpenList was Added, Last position is a Dead End

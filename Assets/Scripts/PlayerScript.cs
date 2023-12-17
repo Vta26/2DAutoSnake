@@ -52,6 +52,8 @@ public class PlayerScript : MonoBehaviour
         //}
     }
 
+    
+
     private void FixedUpdate()
     {
         CurrentPos++;
@@ -61,7 +63,15 @@ public class PlayerScript : MonoBehaviour
         }
 
         else{
-            _direction = Vector2.right;
+            print("Recalculating");
+            this.GetComponent<AStarAlgorithm>().AStar();
+            AStarList = this.GetComponent<AStarAlgorithm>().ResultPath;
+            PathTime = false;
+            CurrentPos = 0;
+            _direction = AStarList[CurrentPos] - this.transform.position;
+            //Might Need to Set So Walk To Open Space And Then Run Algorithm Again
+            //_direction = Vector2.right;
+            //PathTime = true;
         }
 
         for (int i = _segments.Count - 1; i > 0; i--){
@@ -109,6 +119,7 @@ public class PlayerScript : MonoBehaviour
         }
         else if (other.tag == "Player" || other.tag == "Wall"){
             print(Score);
+            print("Died by " + other.tag + " at " + this.transform.position);
             Time.timeScale = 0;
         }
     }
