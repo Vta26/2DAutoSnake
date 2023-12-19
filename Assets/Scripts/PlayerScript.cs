@@ -8,6 +8,7 @@ public class PlayerScript : MonoBehaviour
 
     private Vector2 _direction = Vector2.right;
     public List<Transform> _segments;
+    public Transform ConnectorPrefab;
     public Transform segmentPrefab;
     private int Score = 0;
     public TextMeshProUGUI _text;
@@ -50,9 +51,7 @@ public class PlayerScript : MonoBehaviour
         //else if(Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow)){
             //_direction = Vector2.up;
         //}
-    }
-
-    
+    } 
 
     private void FixedUpdate()
     {
@@ -63,6 +62,10 @@ public class PlayerScript : MonoBehaviour
         }
 
         else{
+            if (AStarList != null && AStarList.Count > 0 && AStarList[AStarList.Count - 1] != this.GetComponent<AStarAlgorithm>().ApplePosition){
+                print("No path found");
+                //Survive
+            }
             print("Recalculating");
             this.GetComponent<AStarAlgorithm>().AStar();
             AStarList = this.GetComponent<AStarAlgorithm>().ResultPath;
@@ -76,6 +79,18 @@ public class PlayerScript : MonoBehaviour
 
         for (int i = _segments.Count - 1; i > 0; i--){
             _segments[i].position = _segments[i-1].position;
+            _segments[i].rotation = _segments[i-1].rotation;
+        }
+
+        if (_segments.Count > 1){
+            _segments[_segments.Count - 1].rotation = _segments[_segments.Count - 2].rotation;
+        }
+        
+        if (_direction.y != 0){
+            this.transform.rotation = Quaternion.Euler(0,0,90*_direction.y);
+        }
+        else{
+            this.transform.rotation = Quaternion.Euler(0,0,(90*(1-_direction.x)));
         }
 
         this.transform.position = new Vector3(
@@ -90,7 +105,10 @@ public class PlayerScript : MonoBehaviour
         Transform segment = Instantiate(this.segmentPrefab);
         segment.position = _segments[_segments.Count - 1].position;
 
+        Transform connector = Instantiate(this.ConnectorPrefab,_segments[_segments.Count - 1]);
+
         _segments.Add(segment);
+
         Score++;
         _text.text = Score.ToString();
     }

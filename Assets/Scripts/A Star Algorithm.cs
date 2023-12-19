@@ -136,18 +136,31 @@ public class AStarAlgorithm : MonoBehaviour
         Vector3 UpPos = ApplePosition + new Vector3(0,1,0);
         Vector3 DownPos = ApplePosition - new Vector3(0,1,0);
 
+        if (ApplePosition.x == 31){
+            RightCheck = true;
+        }
+        if (ApplePosition.x == -31){
+            LeftCheck = true;
+        }
+        if (ApplePosition.y == 14){
+            UpCheck = true;
+        }
+        if (ApplePosition.y == -14){
+            DownCheck = true;
+        }
+
         List<Transform> SnakeSegments = this.GetComponent<PlayerScript>()._segments;
         for (int i = 0; i < SnakeSegments.Count - CL.Count; i++){
-            if (RightPos == SnakeSegments[i].position){
+            if (!RightCheck && RightPos == SnakeSegments[i].position){
                 RightCheck = true;
             }
-            if (LeftPos == SnakeSegments[i].position){
+            if (!LeftCheck && LeftPos == SnakeSegments[i].position){
                 LeftCheck = true;
             }
-            if (UpPos == SnakeSegments[i].position){
+            if (!UpCheck && UpPos == SnakeSegments[i].position){
                 UpCheck = true;
             }
-            if (DownPos == SnakeSegments[i].position){
+            if (!DownCheck && DownPos == SnakeSegments[i].position){
                 DownCheck = true;
             }
         }
@@ -186,7 +199,7 @@ public class AStarAlgorithm : MonoBehaviour
                 return;
             }
 
-            //Apple is Stuck between Snake, run away for now
+            //Apple is Stuck between Snake or SnakeLength > 100, find farthest path possible
             if (AppleStuck(ClosedList)){
                 print("APPLE IS STUCK PANIK");
                 TempNode = FindHighestF(OpenList,ClosedList,TempNode);
